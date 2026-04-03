@@ -89,7 +89,7 @@ export default function Navigation() {
             {/* CTA & Phone */}
             <div className="hidden lg:flex items-center gap-6">
               <span className="text-[#E8B951] font-display font-bold text-lg whitespace-nowrap">
-                February 20, 2026 Ruling
+                Protest deadline: June 20, 2026
               </span>
             </div>
 
