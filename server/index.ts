@@ -19,9 +19,19 @@ type StoredNewsFeed = {
     items: NewsItem[];
 };
 
+function isFeedStale(feed: StoredNewsFeed) {
+    if (!feed.lastUpdated || feed.items.length === 0) return true;
+
+    const lastUpdatedTime = new Date(feed.lastUpdated).getTime();
+    if (Number.isNaN(lastUpdatedTime)) return true;
+
+    return Date.now() - lastUpdatedTime >= FEED_REFRESH_INTERVAL_MS;
+}
+
 const app = express();
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const INDEX_FILE = path.join(DIST_DIR, 'index.html');
+const FEED_REFRESH_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SUMMARY_INSTRUCTIONS =
     'You are a U.S. customs and trade law expert. Write a concise 2-3 sentence summary of the following news article for importers interested in tariff refunds, duty drawback, and IEEPA/Section 301 relief.';
 
@@ -414,13 +424,24 @@ app.get('/api/tariff-refund-news', async (_req, res) => {
     try {
         const stored = await getStoredNewsFeed();
 
-        if (stored.items.length > 0) {
+        if (!isFeedStale(stored)) {
             res.json(stored);
             return;
         }
 
-        const refreshed = await refreshTariffRefundNews();
-        res.json(refreshed);
+        try {
+            const refreshed = await refreshTariffRefundNews();
+            res.json(refreshed);
+        } catch (refreshError) {
+            console.error(refreshError);
+
+            if (stored.items.length > 0) {
+                res.json(stored);
+                return;
+            }
+
+            throw refreshError;
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to load tariff refund news' });

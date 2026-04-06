@@ -17,6 +17,7 @@ export type StoredNewsFeed = {
 };
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'tariff-refund-news.json');
+const FEED_REFRESH_INTERVAL_MS = 4 * 60 * 60 * 1000;
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -29,6 +30,15 @@ const NEWS_QUERIES = [
     '"Court of International Trade" tariff refund',
     'tariff refund CBP duties',
 ];
+
+export function isFeedStale(feed: StoredNewsFeed) {
+    if (!feed.lastUpdated || feed.items.length === 0) return true;
+
+    const lastUpdatedTime = new Date(feed.lastUpdated).getTime();
+    if (Number.isNaN(lastUpdatedTime)) return true;
+
+    return Date.now() - lastUpdatedTime >= FEED_REFRESH_INTERVAL_MS;
+}
 
 async function generateAiSummary(item: NewsItem): Promise<string> {
     if (!process.env.OPENAI_API_KEY) return item.summary || '';

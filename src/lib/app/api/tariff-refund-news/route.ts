@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getStoredNewsFeed, refreshTariffRefundNews } from '@/lib/tariffRefundNews';
+import { getStoredNewsFeed, isFeedStale, refreshTariffRefundNews } from '@/lib/tariffRefundNews';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
     const stored = await getStoredNewsFeed();
 
-    if (stored.items.length > 0) {
+    if (!isFeedStale(stored)) {
         return NextResponse.json(stored, {
             headers: {
                 'Cache-Control': 'no-store, max-age=0',
@@ -14,11 +14,25 @@ export async function GET() {
         });
     }
 
-    const refreshed = await refreshTariffRefundNews();
+    try {
+        const refreshed = await refreshTariffRefundNews();
 
-    return NextResponse.json(refreshed, {
-        headers: {
-            'Cache-Control': 'no-store, max-age=0',
-        },
-    });
+        return NextResponse.json(refreshed, {
+            headers: {
+                'Cache-Control': 'no-store, max-age=0',
+            },
+        });
+    } catch (error) {
+        console.error('News refresh failed, serving cached feed if available.', error);
+
+        if (stored.items.length > 0) {
+            return NextResponse.json(stored, {
+                headers: {
+                    'Cache-Control': 'no-store, max-age=0',
+                },
+            });
+        }
+
+        throw error;
+    }
 }

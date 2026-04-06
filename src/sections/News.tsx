@@ -19,6 +19,7 @@ type NewsFeed = {
 };
 
 const STATIC_NEWS_URL = `${import.meta.env.BASE_URL}tariff-refund-news.json`;
+const CLIENT_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 async function fetchNewsFeed(url: string) {
   const response = await fetch(url, {
@@ -111,8 +112,24 @@ export default function News() {
 
     void loadNews();
 
+    const intervalId = window.setInterval(() => {
+      void loadNews();
+    }, CLIENT_REFRESH_INTERVAL_MS);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void loadNews();
+      }
+    };
+
+    window.addEventListener('focus', loadNews);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       cancelled = true;
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', loadNews);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
