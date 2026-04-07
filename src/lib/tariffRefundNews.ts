@@ -17,6 +17,10 @@ export type StoredNewsFeed = {
 };
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'tariff-refund-news.json');
+const STATIC_FEED_FILES = [
+    path.join(process.cwd(), 'public', 'tariff-refund-news.json'),
+    path.join(process.cwd(), 'dist', 'tariff-refund-news.json'),
+];
 const FEED_REFRESH_INTERVAL_MS = 4 * 60 * 60 * 1000;
 
 const openai = new OpenAI({
@@ -297,8 +301,21 @@ export async function getStoredNewsFeed(): Promise<StoredNewsFeed> {
 }
 
 export async function saveNewsFeed(feed: StoredNewsFeed) {
+    const serialized = JSON.stringify(feed, null, 2);
+
     await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-    await fs.writeFile(DATA_FILE, JSON.stringify(feed, null, 2), 'utf8');
+    await fs.writeFile(DATA_FILE, serialized, 'utf8');
+
+    await Promise.all(
+        STATIC_FEED_FILES.map(async (filePath) => {
+            try {
+                await fs.mkdir(path.dirname(filePath), { recursive: true });
+                await fs.writeFile(filePath, serialized, 'utf8');
+            } catch (error) {
+                console.error('Failed to sync static news feed file', filePath, error);
+            }
+        })
+    );
 }
 
 export async function refreshTariffRefundNews(): Promise<StoredNewsFeed> {
