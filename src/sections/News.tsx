@@ -23,6 +23,7 @@ const CLIENT_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 async function fetchNewsFeed(url: string) {
   const response = await fetch(url, {
+    cache: 'no-store',
     headers: {
       Accept: 'application/json',
     },
@@ -42,15 +43,46 @@ function formatTimestamp(value: string) {
     return value;
   }
 
+  const now = new Date();
+  const isSameDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday =
+    date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
+
+  const timeLabel = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(date);
+
+  if (isSameDay) {
+    return `Today at ${timeLabel}`;
+  }
+
+  if (isYesterday) {
+    return `Yesterday at ${timeLabel}`;
+  }
+
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
   }).format(date);
 }
 
 export default function News() {
   const sectionRef = useRef<HTMLElement>(null);
+  const refreshFeedRef = useRef<(() => Promise<void>) | null>(null);
   const [feed, setFeed] = useState<NewsFeed>({ lastUpdated: '', items: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -110,6 +142,8 @@ export default function News() {
       }
     }
 
+    refreshFeedRef.current = loadNews;
+
     void loadNews();
 
     const intervalId = window.setInterval(() => {
@@ -167,7 +201,19 @@ export default function News() {
 
           <div className="rounded-2xl border border-[#0F1A2E]/10 bg-white/80 px-5 py-4 shadow-[0_18px_60px_rgba(15,26,46,0.08)] backdrop-blur">
             <div className="flex items-center gap-3 text-[17px] text-[#425466]">
-              <RefreshCw className={`h-4 w-4 text-[#E8B951] ${loading ? 'animate-spin' : ''}`} />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!loading) {
+                    void refreshFeedRef.current?.();
+                  }
+                }}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[#E8B951]/10 disabled:cursor-not-allowed"
+                aria-label="Refresh news feed"
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 text-[#E8B951] ${loading ? 'animate-spin' : ''}`} />
+              </button>
               <span>{loading ? 'Refreshing feed...' : updatedLabel ? `Updated ${updatedLabel}` : 'Feed ready'}</span>
             </div>
           </div>
