@@ -57,6 +57,7 @@ export default function News() {
   const sectionRef = useRef<HTMLElement>(null);
   const refreshFeedRef = useRef<(() => Promise<void>) | null>(null);
   const [feed, setFeed] = useState<NewsFeed>({ lastUpdated: '', items: [] });
+  const [displayUpdatedAt, setDisplayUpdatedAt] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -103,6 +104,7 @@ export default function News() {
             lastUpdated: json?.lastUpdated || '',
             items: Array.isArray(json?.items) ? json.items : [],
           });
+          setDisplayUpdatedAt(new Date().toISOString());
         }
       } catch (err) {
         if (!cancelled) {
@@ -141,9 +143,9 @@ export default function News() {
   }, []);
 
   const updatedLabel = useMemo(() => {
-    if (!feed.lastUpdated) return '';
-    return formatTimestamp(feed.lastUpdated);
-  }, [feed.lastUpdated]);
+    if (!displayUpdatedAt) return '';
+    return formatTimestamp(displayUpdatedAt);
+  }, [displayUpdatedAt]);
 
   return (
     <section
