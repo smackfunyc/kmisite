@@ -43,33 +43,6 @@ function formatTimestamp(value: string) {
     return value;
   }
 
-  const now = new Date();
-  const isSameDay =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate();
-
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday =
-    date.getFullYear() === yesterday.getFullYear() &&
-    date.getMonth() === yesterday.getMonth() &&
-    date.getDate() === yesterday.getDate();
-
-  const timeLabel = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  }).format(date);
-
-  if (isSameDay) {
-    return `Today at ${timeLabel}`;
-  }
-
-  if (isYesterday) {
-    return `Yesterday at ${timeLabel}`;
-  }
-
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -214,7 +187,7 @@ export default function News() {
               >
                 <RefreshCw className={`h-4 w-4 text-[#E8B951] ${loading ? 'animate-spin' : ''}`} />
               </button>
-              <span>{loading ? 'Refreshing feed...' : updatedLabel ? `Updated ${updatedLabel}` : 'Feed ready'}</span>
+              <span>{loading ? 'Refreshing feed...' : updatedLabel ? `Last updated ${updatedLabel}` : 'Feed ready'}</span>
             </div>
           </div>
         </div>
