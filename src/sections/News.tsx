@@ -104,7 +104,7 @@ export default function News() {
             lastUpdated: json?.lastUpdated || '',
             items: Array.isArray(json?.items) ? json.items : [],
           });
-          setDisplayUpdatedAt(new Date().toISOString());
+          setDisplayUpdatedAt(json?.lastUpdated || new Date().toISOString());
         }
       } catch (err) {
         if (!cancelled) {

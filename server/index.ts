@@ -193,11 +193,13 @@ app.use(express.json());
 const DATA_FILE = path.join(process.cwd(), 'data', 'tariff-refund-news.json');
 
 const NEWS_QUERIES = [
-    '"U.S. Customs" tariff refunds',
-    'CBP duty refunds',
-    '"customs duty" drawback refunds',
-    '"Court of International Trade" tariff refund',
-    'tariff refund CBP duties'
+    'IEEPA tariff refund 2026',
+    'customs duty refund importers 2026',
+    'CBP tariff refund drawback',
+    'tariff duties refund customs',
+    '"Court of International Trade" tariff',
+    'section 301 duty refund',
+    'tariff drawback importers',
 ];
 
 function cleanText(value: string) {
@@ -257,8 +259,12 @@ function scoreItem(item: NewsItem) {
     const ageMs = Date.now() - new Date(item.publishedAt).getTime();
     const ageDays = ageMs / (1000 * 60 * 60 * 24);
 
-    if (ageDays <= 7) score += 3;
-    else if (ageDays <= 30) score += 1;
+    if (ageDays <= 1) score += 14;
+    else if (ageDays <= 2) score += 11;
+    else if (ageDays <= 3) score += 8;
+    else if (ageDays <= 7) score += 4;
+    else if (ageDays <= 14) score += 1;
+    else score -= 4;
 
     return score;
 }

@@ -4,9 +4,22 @@ import fs from 'fs/promises';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import OpenAI from 'openai';
+function isFeedStale(feed) {
+    if (!feed.lastUpdated || feed.items.length === 0)
+        return true;
+    const lastUpdatedTime = new Date(feed.lastUpdated).getTime();
+    if (Number.isNaN(lastUpdatedTime))
+        return true;
+    return Date.now() - lastUpdatedTime >= FEED_REFRESH_INTERVAL_MS;
+}
 const app = express();
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const INDEX_FILE = path.join(DIST_DIR, 'index.html');
+const STATIC_FEED_FILES = [
+    path.join(process.cwd(), 'public', 'tariff-refund-news.json'),
+    path.join(DIST_DIR, 'tariff-refund-news.json')
+];
+const FEED_REFRESH_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SUMMARY_INSTRUCTIONS = 'You are a U.S. customs and trade law expert. Write a concise 2-3 sentence summary of the following news article for importers interested in tariff refunds, duty drawback, and IEEPA/Section 301 relief.';
 function loadLocalEnvFile(filePath) {
     if (!existsSync(filePath))
@@ -134,11 +147,13 @@ app.use(cors());
 app.use(express.json());
 const DATA_FILE = path.join(process.cwd(), 'data', 'tariff-refund-news.json');
 const NEWS_QUERIES = [
-    '"U.S. Customs" tariff refunds',
-    'CBP duty refunds',
-    '"customs duty" drawback refunds',
-    '"Court of International Trade" tariff refund',
-    'tariff refund CBP duties'
+    'IEEPA tariff refund 2026',
+    'customs duty refund importers 2026',
+    'CBP tariff refund drawback',
+    'tariff duties refund customs',
+    '"Court of International Trade" tariff',
+    'section 301 duty refund',
+    'tariff drawback importers',
 ];
 function cleanText(value) {
     return value.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/\s+/g, ' ').trim();
@@ -191,10 +206,18 @@ function scoreItem(item) {
         score += 2;
     const ageMs = Date.now() - new Date(item.publishedAt).getTime();
     const ageDays = ageMs / (1000 * 60 * 60 * 24);
-    if (ageDays <= 7)
-        score += 3;
-    else if (ageDays <= 30)
+    if (ageDays <= 1)
+        score += 14;
+    else if (ageDays <= 2)
+        score += 11;
+    else if (ageDays <= 3)
+        score += 8;
+    else if (ageDays <= 7)
+        score += 4;
+    else if (ageDays <= 14)
         score += 1;
+    else
+        score -= 4;
     return score;
 }
 function dedupeItems(items) {
@@ -284,6 +307,33 @@ async function fetchCbpRss() {
     }
     return all;
 }
+async function fetchNewsApi() {
+    const apiKey = process.env.NEWSAPI_KEY;
+    if (!apiKey)
+        return [];
+    const q = encodeURIComponent('("U.S. Customs" OR CBP OR customs) AND (tariff OR duty OR duties) AND (refund OR refunds OR drawback)');
+    const url = `https://newsapi.org/v2/everything?q=${q}&language=en&pageSize=20&sortBy=publishedAt&apiKey=${apiKey}`;
+    try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+            throw new Error(`NewsAPI failed with ${res.status}`);
+        }
+        const json = await res.json();
+        return (json.articles || [])
+            .filter((article) => article.title && article.url)
+            .map((article) => ({
+            title: article.title || '',
+            url: article.url || '',
+            source: article.source?.name || 'NewsAPI',
+            publishedAt: article.publishedAt || new Date().toISOString(),
+            summary: article.description || ''
+        }));
+    }
+    catch (error) {
+        console.error('NewsAPI fetch failed', error);
+        return [];
+    }
+}
 async function getStoredNewsFeed() {
     try {
         const raw = await fs.readFile(DATA_FILE, 'utf8');
@@ -297,17 +347,29 @@ async function getStoredNewsFeed() {
     }
 }
 async function saveNewsFeed(feed) {
+    const serialized = JSON.stringify(feed, null, 2);
     await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-    await fs.writeFile(DATA_FILE, JSON.stringify(feed, null, 2), 'utf8');
+    await fs.writeFile(DATA_FILE, serialized, 'utf8');
+    await Promise.all(STATIC_FEED_FILES.map(async (filePath) => {
+        try {
+            await fs.mkdir(path.dirname(filePath), { recursive: true });
+            await fs.writeFile(filePath, serialized, 'utf8');
+        }
+        catch (error) {
+            console.error('Failed to sync static news feed file', filePath, error);
+        }
+    }));
 }
 async function refreshTariffRefundNews() {
-    const [googleNewsItems, cbpItems] = await Promise.allSettled([
+    const [googleNewsItems, cbpItems, newsApiItems] = await Promise.allSettled([
         fetchGoogleNewsRss(),
-        fetchCbpRss()
+        fetchCbpRss(),
+        fetchNewsApi()
     ]);
     const combined = [
         ...(googleNewsItems.status === 'fulfilled' ? googleNewsItems.value : []),
-        ...(cbpItems.status === 'fulfilled' ? cbpItems.value : [])
+        ...(cbpItems.status === 'fulfilled' ? cbpItems.value : []),
+        ...(newsApiItems.status === 'fulfilled' ? newsApiItems.value : [])
     ];
     const ranked = dedupeItems(combined)
         .map((item) => ({
@@ -334,12 +396,25 @@ async function refreshTariffRefundNews() {
 app.get('/api/tariff-refund-news', async (_req, res) => {
     try {
         const stored = await getStoredNewsFeed();
-        if (stored.items.length > 0) {
+        if (!isFeedStale(stored)) {
+            res.set('Cache-Control', 'no-store, max-age=0');
             res.json(stored);
             return;
         }
-        const refreshed = await refreshTariffRefundNews();
-        res.json(refreshed);
+        try {
+            const refreshed = await refreshTariffRefundNews();
+            res.set('Cache-Control', 'no-store, max-age=0');
+            res.json(refreshed);
+        }
+        catch (refreshError) {
+            console.error(refreshError);
+            if (stored.items.length > 0) {
+                res.set('Cache-Control', 'no-store, max-age=0');
+                res.json(stored);
+                return;
+            }
+            throw refreshError;
+        }
     }
     catch (error) {
         console.error(error);
@@ -364,6 +439,7 @@ app.get('/api/cron/tariff-refund-news', async (req, res) => {
             return;
         }
         const feed = await refreshTariffRefundNews();
+        res.set('Cache-Control', 'no-store, max-age=0');
         res.json({
             ok: true,
             refreshedAt: feed.lastUpdated,
