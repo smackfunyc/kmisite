@@ -1,7 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Play } from 'lucide-react';
+
+type NewsItem = {
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  summary?: string;
+};
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,6 +21,17 @@ export default function Hero() {
   const subheadRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [latestArticle, setLatestArticle] = useState<NewsItem | null>(null);
+
+  useEffect(() => {
+    fetch('/api/tariff-refund-news', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        const first = data?.items?.[0];
+        if (first) setLatestArticle(first);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -194,37 +213,31 @@ export default function Hero() {
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-white/60 text-lg">
-                      Updates
+                      {latestArticle
+                        ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(latestArticle.publishedAt))
+                        : 'Latest Update'}
                     </span>
                   </div>
                   <h2 className="text-white text-xl font-display font-bold mb-2">
-                    March 27, 2026 Amended Order
+                    {latestArticle ? latestArticle.title : 'Loading latest news…'}
                   </h2>
-                  <p className="text-white/70 text-lg">
-                    Unliquidated entries: The order directs CBP to liquidate all unliquidated entries entered subject to IEEPA duties, without applying those duties.
-                  </p>
-                  <p className="text-white/70 text-lg">
-                    Liquidated but not finally liquidated entries: The order directs CBP to reliquidate such entries without regard to IEEPA duties.
-                  </p>
-                  <p className="text-white/70 text-lg">
-                    Finally liquidated entries: CBP is directed to reliquidate even those entries for which liquidation is already final, again without applying IEEPA duties.
-                  </p>
-                  <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
-                    <div>
-                      <span className="text-[#E8B951] text-2xl font-display font-bold">
-                        45 days
-                      </span>
-                      <p className="text-white/50 text-[15px]">
-                        To deliver returns
-                      </p>
+                  {latestArticle ? (
+                    <p className="text-white/70 text-lg">
+                      {latestArticle.summary || 'Click below to read the full article on the latest tariff refund developments.'}
+                    </p>
+                  ) : null}
+                  {latestArticle ? (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <a
+                        href={latestArticle.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#E8B951] text-[15px] font-semibold uppercase tracking-widest hover:underline"
+                      >
+                        {latestArticle.source} →
+                      </a>
                     </div>
-                    <div>
-                      <span className="text-[#E8B951] text-2xl font-display font-bold">
-                        90 Day
-                      </span>
-                      <p className="text-white/50 text-[15px]">Re-liquidation window</p>
-                    </div>
-                  </div>
+                  ) : null}
                 </div>
               </div>
             </div>
