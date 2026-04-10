@@ -188,7 +188,7 @@ export default function GEOContent() {
               ))}
             </ul>
             <a
-              href="https://www.cbp.gov"
+              href="https://www.cbp.gov/trade/programs-administration/trade-remedies/ieepa-duty-refunds?utm_source=hp_slideshow&utm_medium=referral&utm_title=IEEPA"
               target="_blank"
               rel="noreferrer"
               className="mt-8 inline-flex items-center gap-2 text-[#E8B951] text-[15px] font-semibold uppercase tracking-widest hover:underline"

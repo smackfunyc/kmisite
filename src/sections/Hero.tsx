@@ -197,13 +197,12 @@ export default function Hero() {
                     launch. Interest accrues at the IRS corporate overpayment rate (currently 6%).
                   </p>
                   <a
-                    href="https://www.cbp.gov"
+                    href="https://www.cbp.gov/trade/programs-administration/trade-remedies/ieepa-duty-refunds?utm_source=hp_slideshow&utm_medium=referral&utm_title=IEEPA"
                     target="_blank"
                     rel="noreferrer"
                     className="mt-3 inline-block text-[#E8B951] text-xs font-semibold uppercase tracking-widest hover:underline"
                   >
-                    Official CBP Source →
-                  </a>
+                    Official CBP Source →</a>
                 </div>
               </div>
             </div>
@@ -253,7 +252,7 @@ export default function Hero() {
       </div>
 
       {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#F5F7FA] to-transparent z-20" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#F5F7FA] to-transparent z-20 pointer-events-none" />
     </section>
   );
 }
