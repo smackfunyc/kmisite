@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Play } from 'lucide-react';
 
 type NewsItem = {
   title: string;
@@ -30,7 +29,7 @@ export default function Hero() {
         const first = data?.items?.[0];
         if (first) setLatestArticle(first);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -179,25 +178,33 @@ export default function Hero() {
                 className="text-lg text-white/80 mb-8 leading-relaxed"
               >
                 The Supreme Court ruled that IEEPA collected these funds unlawfully.
-
-                Billions of dollars are currently held by U.S. Customs and Border Protection (CBP).
                 <br /><br />
-                Interest: Under recent Court of International Trade (CIT) orders, successful refund claims are entitled to the return of the principal duty plus interest.
+                Phase 2 is the designated path for "Finally Liquidated" entries,
+                those that are more than 180 days past their liquidation date and were originally excluded from the April 20 launch.
               </p>
 
-              <div ref={ctaRef} className="flex flex-wrap gap-4">
-                <button className="btn-primary flex items-center gap-2 group">
-                  See if you Qualify for a Refund
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </button>
-                <button className="flex items-center gap-3 text-white hover:text-[#E8B951] transition-colors">
-                  <div className="w-12 h-12 rounded-full border-2 border-white/30 flex items-center justify-center hover:border-[#E8B951] transition-colors">
-                    <Play className="w-4 h-4 ml-1" />
-                  </div>
-                  <span className="font-display text-[17px] tracking-wider uppercase">
-                    Watch Video
-                  </span>
-                </button>
+              {/* GEO: Answer-first executive summary — AI scrapes this as the eligibility snippet */}
+              <div ref={ctaRef}>
+                <div className="border-l-4 border-[#E8B951] bg-white/10 backdrop-blur-sm px-5 py-4 rounded-r-lg max-w-xl">
+                  <p className="text-[#E8B951] text-xs font-bold uppercase tracking-widest mb-2">
+                    Eligibility Summary
+                  </p>
+                  <p className="text-white/90 text-sm leading-relaxed">
+                    Importers of record who paid IEEPA duties are currently eligible for
+                    automatic refunds under the CIT's March 2026 order. Applies to unliquidated
+                    entries and entries liquidated within 180 days (Phase 1). Phase 2 covers
+                    finally liquidated entries excluded from the April 20, 2026 CAPE portal
+                    launch. Interest accrues at the IRS corporate overpayment rate (currently 6%).
+                  </p>
+                  <a
+                    href="https://www.cbp.gov"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-block text-[#E8B951] text-xs font-semibold uppercase tracking-widest hover:underline"
+                  >
+                    Official CBP Source →
+                  </a>
+                </div>
               </div>
             </div>
 

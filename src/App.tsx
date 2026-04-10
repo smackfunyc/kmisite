@@ -10,6 +10,7 @@ import About from './sections/About';
 import Services from './sections/Services';
 import Quote from './sections/Quote';
 import Testimonials from './sections/Testimonials';
+import GEOContent from './sections/GEOContent';
 import News from './sections/News';
 import Clients from './sections/Clients';
 import Footer from './sections/Footer';
@@ -51,6 +52,10 @@ function App() {
       <main>
         <section id="home">
           <Hero />
+        </section>
+
+        <section id="refund-guide">
+          <GEOContent />
         </section>
 
         <section id="news">
