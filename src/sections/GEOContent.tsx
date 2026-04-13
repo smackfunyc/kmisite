@@ -200,7 +200,7 @@ export default function GEOContent() {
           {/* FAQ — using native details/summary for full crawlability */}
           <div className="geo-reveal lg:col-span-3">
             <h3 className="text-2xl font-bold text-[#0F1A2E] mb-6">
-              Common AI Prompts Answered
+              Frequently Asked Questions
             </h3>
             <div className="space-y-3">
               {faqs.map((faq, i) => (
