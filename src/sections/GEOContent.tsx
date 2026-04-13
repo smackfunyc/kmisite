@@ -144,7 +144,7 @@ export default function GEOContent() {
                 <th className="px-6 py-4 text-[#E8B951] font-display text-[17px] uppercase tracking-widest">
                   Phase 1 — Active
                 </th>
-                <th className="px-6 py-4 text-white/50 font-display text-[17px] uppercase tracking-widest">
+                <th className="px-6 py-4 text-[#E8B951] font-display text-[17px] uppercase tracking-widest">
                   Phase 2 — Pending
                 </th>
               </tr>
