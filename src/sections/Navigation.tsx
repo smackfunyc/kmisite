@@ -8,7 +8,7 @@ const navLinks = [
   { name: 'EDI-X12 Converter', href: 'https://chromewebstore.google.com/detail/eliipnmbdnibioljmmogiocogiailhbc?utm_source=item-share-cb' },
   { name: 'ACE Refund', href: 'https://ace.ieepadutyrefunds.com' },
   { name: 'HTSUS Lookup', href: '#lookup' },
-  { name: 'EAR/ITAR Compliance', href: 'https://chromewebstore.google.com/detail/aempgoeebiibcbflkbclkbedobmchioc?utm_source=item-share-cb' },
+  { name: 'EAR/ITAR Space Compliance', href: 'https://datax3.com' },
   { name: 'IEEPA Refunds Chrome Extension', href: 'https://chromewebstore.google.com/detail/mcmgmmbonflhikmfeghclplagfkcihbc?utm_source=item-share-cb' },
 ];
 
