@@ -6,7 +6,7 @@ const navLinks = [
   { name: 'Refund News', href: '#news' },
   { name: 'Tariff Simulator', href: 'https://tariffsimulator.vercel.app/' },
   { name: 'EDI-X12 Converter', href: 'https://chromewebstore.google.com/detail/eliipnmbdnibioljmmogiocogiailhbc?utm_source=item-share-cb' },
-  { name: 'ACE Refund', href: 'https://ieepadutyrefunds.com/ACE/' },
+  { name: 'ACE Refund', href: 'https://ace.ieepadutyrefunds.com' },
   { name: 'HTSUS Lookup', href: '#lookup' },
   { name: 'EAR/ITAR Compliance', href: 'https://chromewebstore.google.com/detail/aempgoeebiibcbflkbclkbedobmchioc?utm_source=item-share-cb' },
   { name: 'IEEPA Refunds Chrome Extension', href: 'https://chromewebstore.google.com/detail/mcmgmmbonflhikmfeghclplagfkcihbc?utm_source=item-share-cb' },
